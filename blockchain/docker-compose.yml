@@ -16,6 +16,8 @@ services:
       CERT_PATH: ${CERT_PATH}
       CERT_CA_PATH: ${CERT_CA_PATH}
       CERT_KEY_PATH: ${CERT_KEY_PATH}
+      MULTICHAIN_FEED: ${MULTICHAIN_FEED}
+      AUTOSTART: ${AUTOSTART}
     ports:
       - ${MULTICHAIN_RPC_PORT}:${MULTICHAIN_RPC_PORT} # port for connecting API
       - "8085:8085" # port for backup
