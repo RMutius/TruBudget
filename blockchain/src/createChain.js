@@ -21,7 +21,6 @@ const configureChain = (
 
   if (isAlpha) {
     log.info("Provisioning MultiChain");
-
     const {
       stdout,
       stderr,
