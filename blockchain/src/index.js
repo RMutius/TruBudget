@@ -369,6 +369,7 @@ app.post("/restoreWallet", async (req, res) => {
         `${multichainDir}/${CHAINNAME}/params.dat`,
         `${extractPath}/params.dat`,
       );
+      await importWallet(`${extractPath}`, CHAINNAME);
       await spawnProcess(() =>
         startMultichainDaemon(
           CHAINNAME,
@@ -379,9 +380,9 @@ app.post("/restoreWallet", async (req, res) => {
         ),
       );
       AUTOSTART = true;
-      //TODO this is nasty why is startDeamon not waiting?
+      // //TODO this is nasty why is startDeamon not waiting?
       await new Promise((resolve) => setTimeout(resolve, 5000));
-      await importWallet(`${extractPath}/wallet.txt`, CHAINNAME);
+      // await importWallet(`${extractPath}`, CHAINNAME);
       const availableWallets = await listAvailableWallets(CHAINNAME);
 
       res.json(
