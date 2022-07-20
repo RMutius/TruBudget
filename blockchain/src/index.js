@@ -10,20 +10,18 @@ const os = require("os");
 const KubernetesClient = require("./kubernetesClient");
 const log = require("./log/logger");
 const logService = require("trubudget-logging-service");
-const { version } = require("../package.json");
+const {version} = require("../package.json");
 
 const {
   startEmailNotificationWatcher,
 } = require("./multichain-feed/email-notifications/notificationWatcher");
-const { startBeta, registerNodeAtAlpha } = require("./connectToChain");
-const { startMultichainDaemon, configureChain } = require("./createChain");
-const { isMultichainReady } = require("./readiness");
+const {startBeta, registerNodeAtAlpha} = require("./connectToChain");
+const {startMultichainDaemon, configureChain} = require("./createChain");
+const {isMultichainReady} = require("./readiness");
 
 const {
-  adaptMultichianParams,
   importWallet,
   listAvailableWallets,
-  backupWallet,
 } = require("./wallet-backup");
 
 const {
@@ -140,7 +138,7 @@ const spawnProcess = (startProcess) => {
       const retryIntervalMs = 10000;
       log.info(
         `Multichain stopped with exit code ${code} and signal ${signal}. Retry in ${retryIntervalMs /
-          1000} Seconds...`,
+        1000} Seconds...`,
       );
       await new Promise((resolve) => setTimeout(resolve, retryIntervalMs));
       spawnProcess(startProcess);
@@ -268,7 +266,6 @@ const stopMultichain = async (mcproc) => {
 app.get("/chain-sha256", async (req, res) => {
   try {
     log.info("Start packaging");
-    await backupWallet(CHAINNAME, `${multichainDir}/${CHAINNAME}/wallet.txt`);
     AUTOSTART = false;
     await stopMultichain(mcproc);
     await createMetadataFileSha256(CHAINNAME, multichainDir, ORGANIZATION);
@@ -295,7 +292,7 @@ app.get("/chain-sha256", async (req, res) => {
       })
       .pipe(res);
   } catch (err) {
-    log.error({ err }, "Error while packaging");
+    log.error({err}, "Error while packaging");
     res.status(500).send("INTERNAL SERVER ERROR");
   }
 });
@@ -312,7 +309,7 @@ app.get("/version", (req, res) => {
 app.get("/liveness", (req, res) => {
   res
     .status(200)
-    .header({ "Content-Type": "application/json" })
+    .header({"Content-Type": "application/json"})
     .send(
       JSON.stringify({
         uptime: process.uptime(),
@@ -325,17 +322,17 @@ app.get("/readiness", (req, res) => {
   if (isReady && isRunning) {
     res
       .status(200)
-      .header({ "Content-Type": "application/json" })
+      .header({"Content-Type": "application/json"})
       .send("Ready");
   } else if (!isReady && isRunning) {
     res
       .status(504)
-      .header({ "Content-Type": "application/json" })
+      .header({"Content-Type": "application/json"})
       .send("Not ready. Multichain is starting ...");
   } else {
     res
       .status(504)
-      .header({ "Content-Type": "application/json" })
+      .header({"Content-Type": "application/json"})
       .send("Not ready. Multichain process stopped");
   }
 });
@@ -355,43 +352,42 @@ app.post("/restoreWallet", async (req, res) => {
   try {
     const unTARer = rawTar.extract();
     unTARer.on("error", (err) => {
-      log.error({ err }, "Error while extracting rawTar: ");
+      log.error({err}, "Error while extracting rawTar: ");
       unTARer.destroy();
       res.status(400).send(err.message);
     });
-    const extract = tar.extract(extractPath, { extract: unTARer });
+    const extract = tar.extract(extractPath, {extract: unTARer});
     const file = streamifier.createReadStream(req.body);
     const stream = file.pipe(extract);
     stream.on("finish", async () => {
-      AUTOSTART = false;
-      if (isRunning) await stopMultichain(mcproc);
-      await adaptMultichianParams(
-        `${multichainDir}/${CHAINNAME}/params.dat`,
-        `${extractPath}/params.dat`,
-      );
-      await importWallet(`${extractPath}`, CHAINNAME);
-      await spawnProcess(() =>
-        startMultichainDaemon(
-          CHAINNAME,
-          externalIpArg,
-          blockNotifyArg,
-          P2P_PORT,
-          multichainDir,
-        ),
-      );
-      AUTOSTART = true;
-      // //TODO this is nasty why is startDeamon not waiting?
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      // await importWallet(`${extractPath}`, CHAINNAME);
-      const availableWallets = await listAvailableWallets(CHAINNAME);
-
-      res.json(
-        `Ok. Available wallets are: ${JSON.stringify(availableWallets)}`,
-      );
+      try {
+        AUTOSTART = false;
+        if (isRunning) await stopMultichain(mcproc);
+        await importWallet(`${extractPath}`, CHAINNAME);
+        await spawnProcess(() =>
+          startMultichainDaemon(
+            CHAINNAME,
+            externalIpArg,
+            blockNotifyArg,
+            P2P_PORT,
+            multichainDir,
+          ),
+        );
+        AUTOSTART = true;
+        //TODO this is nasty why is startDeamon not waiting?
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+        const availableWallets = await listAvailableWallets(CHAINNAME);
+        return res.json(
+          `Ok. Available wallets are: ${JSON.stringify(availableWallets)}`,
+        );
+      } catch (err) {
+        log.error({err}, "Error while trying to restore wallet: ");
+        return res.status(500).send(err.message);
+      }
     });
   } catch (err) {
-    log.error({ err }, "Error while trying to restore wallet: ");
-    res.status(500).send(err.message);
+    log.error({err}, "Error while trying to restore wallet: ");
+    return res.status(500).send(err.message);
   }
 });
 
@@ -402,11 +398,11 @@ app.post("/chain", async (req, res) => {
   try {
     const unTARer = rawTar.extract();
     unTARer.on("error", (err) => {
-      log.error({ err }, "Error while extracting rawTar: ");
+      log.error({err}, "Error while extracting rawTar: ");
       unTARer.destroy();
       res.status(400).send(err.message);
     });
-    const extract = tar.extract(extractPath, { extract: unTARer });
+    const extract = tar.extract(extractPath, {extract: unTARer});
     const file = streamifier.createReadStream(req.body);
     const stream = file.pipe(extract);
     stream.on("finish", async () => {
@@ -471,11 +467,11 @@ app.post("/chain", async (req, res) => {
       }
     });
   } catch (err) {
-    log.error({ err }, "Error while trying to get backup: ");
+    log.error({err}, "Error while trying to get backup: ");
     res.status(500).send(err.message);
   }
 });
 
-app.listen(port, function() {
+app.listen(port, function () {
   log.info(`App listening on ${port}`);
 });
