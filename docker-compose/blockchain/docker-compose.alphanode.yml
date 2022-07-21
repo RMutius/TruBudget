@@ -1,6 +1,6 @@
 services:
   blockchain:
-    image: trubudget/blockchain:${TAG}
+    image: bc:local
     environment:
       PORT: ${BLOCKCHAIN_PORT}
       MULTICHAIN_RPC_PORT: ${MULTICHAIN_RPC_PORT}
@@ -23,12 +23,6 @@ services:
       BUILDTIMESTAMP: ${BUILDTIMESTAMP}
       EXTERNAL_IP: ${EXTERNAL_IP}
       MULTICHAIN_DIR: ${MULTICHAIN_DIR}
-      EMAIL_HOST: ${EMAIL_HOST}
-      EMAIL_PORT: ${EMAIL_PORT}
-      EMAIL_SSL: ${EMAIL_SSL}
-      NOTIFICATION_PATH: ${NOTIFICATION_PATH}
-      NOTIFICATION_MAX_LIFETIME: ${NOTIFICATION_MAX_LIFETIME}
-      NOTIFICATION_SEND_INTERVAL: ${NOTIFICATION_SEND_INTERVAL}
     # networks:
     #   mynetwork:
     #     ipv4_address: 172.20.0.11
